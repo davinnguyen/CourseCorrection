@@ -1,21 +1,56 @@
-//
-//  ContentView.swift
-//  CourseCorrection
-//
-//  Created by Davin on 6/17/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var store = SchoolStore()
+    @State private var showingAdd = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            List {
+                ForEach($store.schools) { $school in
+                    NavigationLink(school.name) {
+                        SchoolFormView(school: $school)
+                            .navigationTitle("Edit School")
+                    }
+                }
+            }
+            .navigationTitle("Schools")
+            .toolbar {
+                Button("Add") { showingAdd = true }
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .sheet(isPresented: $showingAdd) {
+                AddSchoolSheet()
+                    .environmentObject(store)
+            }
         }
-        .padding()
+    }
+}
+
+struct AddSchoolSheet: View {
+    @EnvironmentObject var store: SchoolStore
+    @Environment(\.dismiss) var dismiss
+    @State private var newSchool = School(name: "", location: "", type: .university)
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                SchoolFormView(school: $newSchool)
+            }
+                .navigationTitle("New School")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            store.schools.append(newSchool)
+                            dismiss()
+                        }
+                    }
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel", role: .cancel) { dismiss() }
+                    }
+                }
+        }
     }
 }
 
