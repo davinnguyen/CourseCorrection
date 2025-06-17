@@ -1,10 +1,20 @@
 import SwiftUI
 
+struct EditSchoolFormView: View {
+    @Binding var school: School
+    var body: some View {
+        Form {
+            SchoolFormView(school: $school)
+        }
+        .navigationTitle(school.name)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
 struct SchoolFormView: View {
     @Binding var school: School
 
     var body: some View {
-        Form {
+        Group {
             TextField("Name", text: $school.name)
             TextField("Location", text: $school.location)
             Picker("Type", selection: $school.type) {

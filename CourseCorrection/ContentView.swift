@@ -18,6 +18,7 @@ struct ContentView: View {
             .toolbar {
                 Button("Add") { showingAdd = true }
             }
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingAdd) {
                 AddSchoolSheet()
                     .environmentObject(store)
@@ -33,8 +34,11 @@ struct AddSchoolSheet: View {
 
     var body: some View {
         NavigationStack {
-            SchoolFormView(school: $newSchool)
+            Form {
+                SchoolFormView(school: $newSchool)
+            }
                 .navigationTitle("New School")
+                .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save") {
