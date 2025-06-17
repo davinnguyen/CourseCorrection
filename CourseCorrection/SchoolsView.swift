@@ -20,10 +20,10 @@ struct SchoolsView: View {
         NavigationStack {
             List {
                 ForEach(filteredSchools) { school in
-                    if let index = store.schools.firstIndex(where: { $0.id == school.id }) {
+                    if let _ = store.schools.firstIndex(where: { $0.id == school.id }) {
                         NavigationLink(school.name) {
-                            SchoolFormView(school: $store.schools[index])
-                                .navigationTitle("Edit School")
+                            EditSchoolView(school: school)
+                                .environmentObject(store)
                         }
                     }
                 }
@@ -48,12 +48,8 @@ struct SchoolsView: View {
     }
 
     private func deleteSchools(at offsets: IndexSet) {
-        for index in offsets {
-            let id = filteredSchools[index].id
-            if let original = store.schools.firstIndex(where: { $0.id == id }) {
-                store.schools.remove(at: original)
-            }
-        }
+        let ids = offsets.map { filteredSchools[$0].id }
+        store.remove(ids: ids)
     }
 }
 
@@ -72,7 +68,7 @@ struct AddSchoolSheet: View {
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
                         Button("Save") {
-                            store.schools.append(newSchool)
+                            store.add(newSchool)
                             dismiss()
                         }
                         .disabled(newSchool.name.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -82,6 +78,44 @@ struct AddSchoolSheet: View {
                     }
                 }
         }
+    }
+}
+
+struct EditSchoolView: View {
+    @EnvironmentObject var store: SchoolStore
+    @Environment(\.dismiss) var dismiss
+
+    @State private var editedSchool: School
+    private let originalSchool: School
+
+    init(school: School) {
+        self._editedSchool = State(initialValue: school)
+        self.originalSchool = school
+    }
+
+    var body: some View {
+        Form {
+            SchoolFormView(school: $editedSchool)
+        }
+        .navigationTitle("Edit School")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") { save() }
+                    .disabled(editedSchool == originalSchool)
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel", role: .cancel) { dismiss() }
+            }
+        }
+    }
+
+    private func save() {
+        if let index = store.schools.firstIndex(where: { $0.id == originalSchool.id }) {
+            store.schools[index] = editedSchool
+            store.save()
+        }
+        dismiss()
     }
 }
 

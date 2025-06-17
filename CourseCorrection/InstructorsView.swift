@@ -21,11 +21,11 @@ struct InstructorsView: View {
         NavigationStack {
             List {
                 ForEach(filteredInstructors) { instructor in
-                    if let index = store.instructors.firstIndex(where: { $0.id == instructor.id }) {
+                    if let _ = store.instructors.firstIndex(where: { $0.id == instructor.id }) {
                         NavigationLink(instructor.name) {
-                            InstructorFormView(instructor: $store.instructors[index])
+                            EditInstructorView(instructor: instructor)
+                                .environmentObject(store)
                                 .environmentObject(departmentStore)
-                                .navigationTitle("Edit Instructor")
                         }
                     }
                 }
@@ -51,12 +51,8 @@ struct InstructorsView: View {
     }
 
     private func deleteInstructors(at offsets: IndexSet) {
-        for index in offsets {
-            let id = filteredInstructors[index].id
-            if let original = store.instructors.firstIndex(where: { $0.id == id }) {
-                store.instructors.remove(at: original)
-            }
-        }
+        let ids = offsets.map { filteredInstructors[$0].id }
+        store.remove(ids: ids)
     }
 }
 
@@ -77,7 +73,7 @@ struct AddInstructorSheet: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        store.instructors.append(newInstructor)
+                        store.add(newInstructor)
                         dismiss()
                     }
                     .disabled(newInstructor.name.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -87,6 +83,46 @@ struct AddInstructorSheet: View {
                 }
             }
         }
+    }
+}
+
+struct EditInstructorView: View {
+    @EnvironmentObject var store: InstructorStore
+    @EnvironmentObject var departmentStore: DepartmentStore
+    @Environment(\.dismiss) var dismiss
+
+    @State private var editedInstructor: Instructor
+    private let originalInstructor: Instructor
+
+    init(instructor: Instructor) {
+        self._editedInstructor = State(initialValue: instructor)
+        self.originalInstructor = instructor
+    }
+
+    var body: some View {
+        Form {
+            InstructorFormView(instructor: $editedInstructor)
+                .environmentObject(departmentStore)
+        }
+        .navigationTitle("Edit Instructor")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") { save() }
+                    .disabled(editedInstructor == originalInstructor)
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel", role: .cancel) { dismiss() }
+            }
+        }
+    }
+
+    private func save() {
+        if let index = store.instructors.firstIndex(where: { $0.id == originalInstructor.id }) {
+            store.instructors[index] = editedInstructor
+            store.save()
+        }
+        dismiss()
     }
 }
 

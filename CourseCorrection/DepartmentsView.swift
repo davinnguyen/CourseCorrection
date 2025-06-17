@@ -39,11 +39,11 @@ struct DepartmentsView: View {
                         Section(header: Text(school.name)) {
                             ForEach(departments(for: school)) { department in
                                 if let index = store.departments.firstIndex(where: { $0.id == department.id }) {
-                                    NavigationLink(department.name) {
-                                        DepartmentFormView(department: $store.departments[index])
-                                            .environmentObject(schoolStore)
-                                            .navigationTitle("Edit Department")
-                                    }
+                                NavigationLink(department.name) {
+                                    EditDepartmentView(department: department)
+                                        .environmentObject(store)
+                                        .environmentObject(schoolStore)
+                                }
                                 }
                             }
                             .onDelete { offsets in
@@ -56,11 +56,11 @@ struct DepartmentsView: View {
                 if !unknownDepartments.isEmpty {
                     Section(header: Text("Unknown School")) {
                         ForEach(unknownDepartments) { department in
-                            if let index = store.departments.firstIndex(where: { $0.id == department.id }) {
+                            if let _ = store.departments.firstIndex(where: { $0.id == department.id }) {
                                 NavigationLink(department.name) {
-                                    DepartmentFormView(department: $store.departments[index])
+                                    EditDepartmentView(department: department)
+                                        .environmentObject(store)
                                         .environmentObject(schoolStore)
-                                        .navigationTitle("Edit Department")
                                 }
                             }
                         }
@@ -90,12 +90,8 @@ struct DepartmentsView: View {
     }
 
     private func deleteDepartments(at offsets: IndexSet, in list: [Department]) {
-        for index in offsets {
-            let id = list[index].id
-            if let original = store.departments.firstIndex(where: { $0.id == id }) {
-                store.departments.remove(at: original)
-            }
-        }
+        let ids = offsets.map { list[$0].id }
+        store.remove(ids: ids)
     }
 }
 
@@ -116,7 +112,7 @@ struct AddDepartmentSheet: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        store.departments.append(newDepartment)
+                        store.add(newDepartment)
                         dismiss()
                     }
                     .disabled(newDepartment.name.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -126,6 +122,48 @@ struct AddDepartmentSheet: View {
                 }
             }
         }
+    }
+}
+
+struct EditDepartmentView: View {
+    @EnvironmentObject var store: DepartmentStore
+    @EnvironmentObject var schoolStore: SchoolStore
+    @Environment(\.dismiss) var dismiss
+
+    @State private var editedDepartment: Department
+    private let originalDepartment: Department
+
+    init(department: Department) {
+        self._editedDepartment = State(initialValue: department)
+        self.originalDepartment = department
+    }
+
+    var body: some View {
+        Form {
+            DepartmentFormView(department: $editedDepartment)
+                .environmentObject(schoolStore)
+        }
+        .navigationTitle("Edit Department")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    save()
+                }
+                .disabled(editedDepartment == originalDepartment)
+            }
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel", role: .cancel) { dismiss() }
+            }
+        }
+    }
+
+    private func save() {
+        if let index = store.departments.firstIndex(where: { $0.id == originalDepartment.id }) {
+            store.departments[index] = editedDepartment
+            store.save()
+        }
+        dismiss()
     }
 }
 
