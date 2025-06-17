@@ -9,19 +9,58 @@ struct DepartmentsView: View {
         store.departments.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
+    private var sortedSchools: [School] {
+        schoolStore.schools.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    private func departments(for school: School) -> [Department] {
+        sortedDepartments.filter { $0.schoolID == school.id }
+    }
+
+    private var unknownDepartments: [Department] {
+        sortedDepartments.filter { dept in
+            !schoolStore.schools.contains(where: { $0.id == dept.schoolID })
+        }
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(sortedDepartments) { department in
-                    if let index = store.departments.firstIndex(where: { $0.id == department.id }) {
-                        NavigationLink(department.name) {
-                            DepartmentFormView(department: $store.departments[index])
-                                .environmentObject(schoolStore)
-                                .navigationTitle("Edit Department")
+                ForEach(sortedSchools) { school in
+                    if !departments(for: school).isEmpty {
+                        Section(header: Text(school.name)) {
+                            ForEach(departments(for: school)) { department in
+                                if let index = store.departments.firstIndex(where: { $0.id == department.id }) {
+                                    NavigationLink(department.name) {
+                                        DepartmentFormView(department: $store.departments[index])
+                                            .environmentObject(schoolStore)
+                                            .navigationTitle("Edit Department")
+                                    }
+                                }
+                            }
+                            .onDelete { offsets in
+                                deleteDepartments(at: offsets, in: departments(for: school))
+                            }
                         }
                     }
                 }
-                .onDelete(perform: deleteDepartments)
+
+                if !unknownDepartments.isEmpty {
+                    Section(header: Text("Unknown School")) {
+                        ForEach(unknownDepartments) { department in
+                            if let index = store.departments.firstIndex(where: { $0.id == department.id }) {
+                                NavigationLink(department.name) {
+                                    DepartmentFormView(department: $store.departments[index])
+                                        .environmentObject(schoolStore)
+                                        .navigationTitle("Edit Department")
+                                }
+                            }
+                        }
+                        .onDelete { offsets in
+                            deleteDepartments(at: offsets, in: unknownDepartments)
+                        }
+                    }
+                }
             }
             .navigationTitle("Departments")
             .toolbar {
@@ -36,9 +75,9 @@ struct DepartmentsView: View {
         }
     }
 
-    private func deleteDepartments(at offsets: IndexSet) {
+    private func deleteDepartments(at offsets: IndexSet, in list: [Department]) {
         for index in offsets {
-            let id = sortedDepartments[index].id
+            let id = list[index].id
             if let original = store.departments.firstIndex(where: { $0.id == id }) {
                 store.departments.remove(at: original)
             }
