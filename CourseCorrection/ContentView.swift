@@ -25,6 +25,14 @@ struct ContentView: View {
                 .environmentObject(departmentStore)
                 .environmentObject(schoolStore)
         }
+        .overlay(alignment: .bottom) {
+            Text(departmentStore.usingICloud ? "Stored in iCloud" : "Stored on Device")
+                .font(.footnote)
+                .padding(6)
+                .background(.thinMaterial)
+                .cornerRadius(8)
+                .padding(.bottom, 4)
+        }
     }
 }
 

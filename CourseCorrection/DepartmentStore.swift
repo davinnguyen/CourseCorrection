@@ -2,39 +2,42 @@ import Foundation
 
 private let containerIdentifier = "iCloud.com.davin.CourseCorrection"
 
-/// Manages the list of `Department` objects and persists them to iCloud using
-/// `FileManager`.
+/// Manages the list of `Department` objects and persists them either to iCloud
+/// or to on-device storage.
 class DepartmentStore: ObservableObject {
     @Published var departments: [Department] = []
+    @Published var usingICloud: Bool
 
-    private var fileURL: URL? {
-        FileManager.default
-            .url(forUbiquityContainerIdentifier: containerIdentifier)?
-            .appendingPathComponent("departments.json")
-    }
+    private let fileURL: URL
 
     init() {
+        if let icloud = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier) {
+            usingICloud = true
+            fileURL = icloud.appendingPathComponent("departments.json")
+        } else {
+            usingICloud = false
+            fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("departments.json")
+        }
         load()
     }
 
-    /// Loads stored departments from iCloud, if available.
+    /// Loads stored departments from persistent storage, if available.
     func load() {
-        guard let url = fileURL,
-              let data = try? Data(contentsOf: url) else { return }
+        guard let data = try? Data(contentsOf: fileURL) else { return }
 
         if let decoded = try? JSONDecoder().decode([Department].self, from: data) {
             departments = decoded
         }
     }
 
-    /// Saves the current departments list to iCloud.
+    /// Saves the current departments list.
     func save() {
-        guard let url = fileURL else { return }
         do {
             let data = try JSONEncoder().encode(departments)
-            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
+            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(),
                                                     withIntermediateDirectories: true)
-            try data.write(to: url)
+            try data.write(to: fileURL)
         } catch {
             print("Failed to save departments: \(error)")
         }

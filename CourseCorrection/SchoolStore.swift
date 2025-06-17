@@ -2,39 +2,41 @@ import Foundation
 
 private let containerIdentifier = "iCloud.com.davin.CourseCorrection"
 
-/// View model responsible for persisting `School` objects in iCloud.
+/// View model responsible for persisting `School` objects in iCloud or locally.
 class SchoolStore: ObservableObject {
     @Published var schools: [School] = []
+    @Published var usingICloud: Bool
 
-    private var fileURL: URL? {
-        FileManager.default
-            .url(forUbiquityContainerIdentifier: containerIdentifier)?
-            .appendingPathComponent("schools.json")
-    }
+    private let fileURL: URL
 
     init() {
+        if let icloud = FileManager.default.url(forUbiquityContainerIdentifier: containerIdentifier) {
+            usingICloud = true
+            fileURL = icloud.appendingPathComponent("schools.json")
+        } else {
+            usingICloud = false
+            fileURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("schools.json")
+        }
         load()
     }
 
-    /// Loads schools from the iCloud container.
+    /// Loads schools from persistent storage.
     func load() {
-        guard let url = fileURL,
-              let data = try? Data(contentsOf: url) else { return }
+        guard let data = try? Data(contentsOf: fileURL) else { return }
 
         if let decoded = try? JSONDecoder().decode([School].self, from: data) {
             schools = decoded
         }
     }
 
-    /// Saves schools to the iCloud container.
+    /// Saves schools to persistent storage.
     func save() {
-        guard let url = fileURL else { return }
-
         do {
             let data = try JSONEncoder().encode(schools)
-            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
+            try FileManager.default.createDirectory(at: fileURL.deletingLastPathComponent(),
                                                     withIntermediateDirectories: true)
-            try data.write(to: url)
+            try data.write(to: fileURL)
         } catch {
             print("Failed to save schools: \(error)")
         }
