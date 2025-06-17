@@ -1,21 +1,32 @@
-//
-//  ContentView.swift
-//  CourseCorrection
-//
-//  Created by Davin on 6/17/25.
-//
-
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var store = SchoolStore()
+    @State private var showAdd = false
+
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            List {
+                ForEach($store.schools) { $school in
+                    NavigationLink(destination: EditSchoolView(school: $school)) {
+                        VStack(alignment: .leading) {
+                            Text(school.name)
+                                .font(.headline)
+                            Text(school.type.rawValue)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Schools")
+            .toolbar {
+                Button("Add") { showAdd = true }
+            }
+            .sheet(isPresented: $showAdd) {
+                AddSchoolView(store: store)
+            }
         }
-        .padding()
     }
 }
 
