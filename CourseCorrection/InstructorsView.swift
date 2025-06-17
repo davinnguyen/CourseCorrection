@@ -2,6 +2,7 @@ import SwiftUI
 
 struct InstructorsView: View {
     @EnvironmentObject var store: InstructorStore
+    @EnvironmentObject var departmentStore: DepartmentStore
     @State private var showingAdd = false
 
     private var sortedInstructors: [Instructor] {
@@ -15,6 +16,7 @@ struct InstructorsView: View {
                     if let index = store.instructors.firstIndex(where: { $0.id == instructor.id }) {
                         NavigationLink(instructor.name) {
                             InstructorFormView(instructor: $store.instructors[index])
+                                .environmentObject(departmentStore)
                                 .navigationTitle("Edit Instructor")
                         }
                     }
@@ -29,6 +31,7 @@ struct InstructorsView: View {
             .sheet(isPresented: $showingAdd) {
                 AddInstructorSheet()
                     .environmentObject(store)
+                    .environmentObject(departmentStore)
             }
         }
     }
@@ -45,13 +48,15 @@ struct InstructorsView: View {
 
 struct AddInstructorSheet: View {
     @EnvironmentObject var store: InstructorStore
+    @EnvironmentObject var departmentStore: DepartmentStore
     @Environment(\.dismiss) var dismiss
-    @State private var newInstructor = Instructor(name: "", department: "")
+    @State private var newInstructor = Instructor(name: "", departments: [])
 
     var body: some View {
         NavigationStack {
             Form {
                 InstructorFormView(instructor: $newInstructor)
+                    .environmentObject(departmentStore)
             }
             .navigationTitle("New Instructor")
             .navigationBarTitleDisplayMode(.inline)
@@ -72,5 +77,7 @@ struct AddInstructorSheet: View {
 }
 
 #Preview {
-    InstructorsView().environmentObject(InstructorStore())
+    InstructorsView()
+        .environmentObject(InstructorStore())
+        .environmentObject(DepartmentStore())
 }
