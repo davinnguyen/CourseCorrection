@@ -4,15 +4,23 @@ struct InstructorsView: View {
     @EnvironmentObject var store: InstructorStore
     @EnvironmentObject var departmentStore: DepartmentStore
     @State private var showingAdd = false
+    @State private var searchText = ""
 
     private var sortedInstructors: [Instructor] {
         store.instructors.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
+    private var filteredInstructors: [Instructor] {
+        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return sortedInstructors
+        }
+        return sortedInstructors.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(sortedInstructors) { instructor in
+                ForEach(filteredInstructors) { instructor in
                     if let index = store.instructors.firstIndex(where: { $0.id == instructor.id }) {
                         NavigationLink(instructor.name) {
                             InstructorFormView(instructor: $store.instructors[index])
@@ -23,10 +31,16 @@ struct InstructorsView: View {
                 }
                 .onDelete(perform: deleteInstructors)
             }
+            .overlay {
+                if sortedInstructors.isEmpty {
+                    ContentUnavailableView("No Instructors", systemImage: "person.2")
+                }
+            }
             .navigationTitle("Instructors")
             .toolbar {
                 Button("Add") { showingAdd = true }
             }
+            .searchable(text: $searchText)
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingAdd) {
                 AddInstructorSheet()
@@ -38,7 +52,7 @@ struct InstructorsView: View {
 
     private func deleteInstructors(at offsets: IndexSet) {
         for index in offsets {
-            let id = sortedInstructors[index].id
+            let id = filteredInstructors[index].id
             if let original = store.instructors.firstIndex(where: { $0.id == id }) {
                 store.instructors.remove(at: original)
             }

@@ -4,9 +4,17 @@ struct DepartmentsView: View {
     @EnvironmentObject var store: DepartmentStore
     @EnvironmentObject var schoolStore: SchoolStore
     @State private var showingAdd = false
+    @State private var searchText = ""
 
     private var sortedDepartments: [Department] {
         store.departments.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+    }
+
+    private var filteredDepartments: [Department] {
+        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return sortedDepartments
+        }
+        return sortedDepartments.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
     }
 
     private var sortedSchools: [School] {
@@ -14,11 +22,11 @@ struct DepartmentsView: View {
     }
 
     private func departments(for school: School) -> [Department] {
-        sortedDepartments.filter { $0.schoolID == school.id }
+        filteredDepartments.filter { $0.schoolID == school.id }
     }
 
     private var unknownDepartments: [Department] {
-        sortedDepartments.filter { dept in
+        filteredDepartments.filter { dept in
             !schoolStore.schools.contains(where: { $0.id == dept.schoolID })
         }
     }
@@ -62,10 +70,16 @@ struct DepartmentsView: View {
                     }
                 }
             }
+            .overlay {
+                if sortedDepartments.isEmpty {
+                    ContentUnavailableView("No Departments", systemImage: "books.vertical")
+                }
+            }
             .navigationTitle("Departments")
             .toolbar {
                 Button("Add") { showingAdd = true }
             }
+            .searchable(text: $searchText)
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingAdd) {
                 AddDepartmentSheet()

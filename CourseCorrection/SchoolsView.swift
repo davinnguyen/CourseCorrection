@@ -3,15 +3,23 @@ import SwiftUI
 struct SchoolsView: View {
     @EnvironmentObject var store: SchoolStore
     @State private var showingAdd = false
+    @State private var searchText = ""
 
     private var sortedSchools: [School] {
         store.schools.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 
+    private var filteredSchools: [School] {
+        guard !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return sortedSchools
+        }
+        return sortedSchools.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+    }
+
     var body: some View {
         NavigationStack {
             List {
-                ForEach(sortedSchools) { school in
+                ForEach(filteredSchools) { school in
                     if let index = store.schools.firstIndex(where: { $0.id == school.id }) {
                         NavigationLink(school.name) {
                             SchoolFormView(school: $store.schools[index])
@@ -21,10 +29,16 @@ struct SchoolsView: View {
                 }
                 .onDelete(perform: deleteSchools)
             }
+            .overlay {
+                if sortedSchools.isEmpty {
+                    ContentUnavailableView("No Schools", systemImage: "building.columns")
+                }
+            }
             .navigationTitle("Schools")
             .toolbar {
                 Button("Add") { showingAdd = true }
             }
+            .searchable(text: $searchText)
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingAdd) {
                 AddSchoolSheet()
@@ -35,7 +49,7 @@ struct SchoolsView: View {
 
     private func deleteSchools(at offsets: IndexSet) {
         for index in offsets {
-            let id = sortedSchools[index].id
+            let id = filteredSchools[index].id
             if let original = store.schools.firstIndex(where: { $0.id == id }) {
                 store.schools.remove(at: original)
             }
