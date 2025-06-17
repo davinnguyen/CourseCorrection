@@ -1,55 +1,29 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var store = SchoolStore()
-    @State private var showingAdd = false
+    @StateObject private var schoolStore = SchoolStore()
+    @StateObject private var instructorStore = InstructorStore()
+    @StateObject private var departmentStore = DepartmentStore()
 
     var body: some View {
-        NavigationStack {
-            List {
-                ForEach($store.schools) { $school in
-                    NavigationLink(school.name) {
-                        SchoolFormView(school: $school)
-                            .navigationTitle("Edit School")
-                    }
+        TabView {
+            SchoolsView()
+                .tabItem {
+                    Label("Schools", systemImage: "building.columns")
                 }
-            }
-            .navigationTitle("Schools")
-            .toolbar {
-                Button("Add") { showingAdd = true }
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .sheet(isPresented: $showingAdd) {
-                AddSchoolSheet()
-                    .environmentObject(store)
-            }
-        }
-    }
-}
-
-struct AddSchoolSheet: View {
-    @EnvironmentObject var store: SchoolStore
-    @Environment(\.dismiss) var dismiss
-    @State private var newSchool = School(name: "", location: "", type: .university)
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                SchoolFormView(school: $newSchool)
-            }
-                .navigationTitle("New School")
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button("Save") {
-                            store.schools.append(newSchool)
-                            dismiss()
-                        }
-                    }
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Cancel", role: .cancel) { dismiss() }
-                    }
+                .environmentObject(schoolStore)
+            InstructorsView()
+                .tabItem {
+                    Label("Instructors", systemImage: "person.2")
                 }
+                .environmentObject(instructorStore)
+                .environmentObject(departmentStore)
+            DepartmentsView()
+                .tabItem {
+                    Label("Departments", systemImage: "books.vertical")
+                }
+                .environmentObject(departmentStore)
+                .environmentObject(schoolStore)
         }
     }
 }
