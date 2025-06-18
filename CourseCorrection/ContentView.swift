@@ -4,7 +4,11 @@ struct ContentView: View {
     @StateObject private var schoolStore = SchoolStore()
     @StateObject private var instructorStore = InstructorStore()
     @StateObject private var departmentStore = DepartmentStore()
+
     @StateObject private var semesterStore = SemesterStore()
+    @StateObject private var subjectStore = SubjectStore()
+    @StateObject private var courseStore = CourseStore()
+    @StateObject private var classItemStore = ClassItemStore()
 
     var body: some View {
         TabView {
@@ -26,6 +30,25 @@ struct ContentView: View {
                 }
                 .environmentObject(departmentStore)
                 .environmentObject(schoolStore)
+            SubjectsView()
+                .tabItem {
+                    Label("Subjects", systemImage: "book")
+                }
+                .environmentObject(subjectStore)
+                .environmentObject(schoolStore)
+            CoursesView()
+                .tabItem {
+                    Label("Courses", systemImage: "book.closed")
+                }
+                .environmentObject(courseStore)
+                .environmentObject(subjectStore)
+            ClassItemsView()
+                .tabItem {
+                    Label("Classes", systemImage: "calendar")
+                }
+                .environmentObject(classItemStore)
+                .environmentObject(courseStore)
+                .environmentObject(instructorStore)
         }
         .overlay(alignment: .bottom) {
             Text(departmentStore.usingICloud ? "Stored in iCloud" : "Stored on Device")
