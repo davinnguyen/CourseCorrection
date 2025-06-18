@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SchoolsView: View {
     @EnvironmentObject var store: SchoolStore
+    @EnvironmentObject var semesterStore: SemesterStore
     @State private var showingAdd = false
     @State private var searchText = ""
 
@@ -22,8 +23,9 @@ struct SchoolsView: View {
                 ForEach(filteredSchools) { school in
                     if let _ = store.schools.firstIndex(where: { $0.id == school.id }) {
                         NavigationLink(school.name) {
-                            EditSchoolView(school: school)
+                            SchoolDetailView(school: school)
                                 .environmentObject(store)
+                                .environmentObject(semesterStore)
                         }
                     }
                 }

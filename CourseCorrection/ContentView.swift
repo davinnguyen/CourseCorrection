@@ -4,6 +4,7 @@ struct ContentView: View {
     @StateObject private var schoolStore = SchoolStore()
     @StateObject private var instructorStore = InstructorStore()
     @StateObject private var departmentStore = DepartmentStore()
+    @StateObject private var semesterStore = SemesterStore()
 
     var body: some View {
         TabView {
@@ -12,6 +13,7 @@ struct ContentView: View {
                     Label("Schools", systemImage: "building.columns")
                 }
                 .environmentObject(schoolStore)
+                .environmentObject(semesterStore)
             InstructorsView()
                 .tabItem {
                     Label("Instructors", systemImage: "person.2")
