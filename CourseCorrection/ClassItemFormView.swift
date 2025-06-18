@@ -3,9 +3,8 @@ import SwiftUI
 struct ClassItemFormView: View {
     @EnvironmentObject var courseStore: CourseStore
     @EnvironmentObject var instructorStore: InstructorStore
+    @EnvironmentObject var semesterStore: SemesterStore
     @Binding var classItem: ClassItem
-
-    @State private var semesterIDText: String = ""
 
     var body: some View {
         Group {
@@ -14,10 +13,12 @@ struct ClassItemFormView: View {
                     Text("\(course.courseNumber) - \(course.title)").tag(course.id)
                 }
             }
-            TextField("Semester ID", text: Binding(
-                get: { classItem.semesterID?.uuidString ?? "" },
-                set: { classItem.semesterID = UUID(uuidString: $0) }
-            ))
+            Picker("Semester", selection: $classItem.semesterID) {
+                Text("None").tag(nil as UUID?)
+                ForEach(semesterStore.semesters) { semester in
+                    Text(semester.name).tag(Optional(semester.id))
+                }
+            }
             Picker("Instructor", selection: $classItem.instructorID) {
                 Text("None").tag(nil as UUID?)
                 ForEach(instructorStore.instructors) { instructor in
@@ -32,4 +33,5 @@ struct ClassItemFormView: View {
     ClassItemFormView(classItem: .constant(ClassItem(courseID: UUID(), semesterID: nil, instructorID: nil)))
         .environmentObject(CourseStore())
         .environmentObject(InstructorStore())
+        .environmentObject(SemesterStore())
 }
