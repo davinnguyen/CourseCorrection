@@ -1,8 +1,7 @@
-
 import Foundation
 import SwiftUI
 
-struct CourseResultEntry: Identifiable, Codable {
+struct CourseResultEntry: Identifiable, Codable, Equatable, Hashable {
     var id: UUID = UUID()
     var classID: UUID
     var courseResult: CourseResult?
