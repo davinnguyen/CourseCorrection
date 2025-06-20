@@ -1,8 +1,7 @@
-
 import Foundation
 import SwiftUI
 
-struct CourseResultEntry: Identifiable, Codable {
+struct CourseResultEntry: Identifiable, Codable, Equatable, Hashable {
     var id: UUID = UUID()
     var classID: UUID
     var courseResult: CourseResult?
@@ -75,7 +74,7 @@ enum LetterGrade: String, CaseIterable, Codable, Comparable {
 }
 
 /// Represents the overall course result/status: either a letter grade or a non-graded status.
-enum CourseResult: Codable {
+enum CourseResult: Codable, Equatable, Hashable {
     case grade(LetterGrade)
     case withdrawn     // "W"
     case incomplete    // "I"
@@ -116,6 +115,11 @@ enum CourseResult: Codable {
         case .pass:             return "Pass"
         case .noPass:           return "No Pass"
         }
+    }
+
+    /// All standard course result options including letter grades.
+    static var allOptions: [CourseResult] {
+        LetterGrade.orderedCases.map { .grade($0) } + [.withdrawn, .incomplete, .audit, .pass, .noPass]
     }
     
     /// Initialize from a string code, e.g. "B+", "W", "I", etc.
