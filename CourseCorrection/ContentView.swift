@@ -9,6 +9,7 @@ struct ContentView: View {
     @StateObject private var subjectStore = SubjectStore()
     @StateObject private var courseStore = CourseStore()
     @StateObject private var classItemStore = ClassItemStore()
+    @StateObject private var courseResultEntryStore = CourseResultEntryStore()
 
     var body: some View {
         TabView {
@@ -49,6 +50,14 @@ struct ContentView: View {
                 .environmentObject(classItemStore)
                 .environmentObject(courseStore)
                 .environmentObject(instructorStore)
+                .environmentObject(semesterStore)
+            CourseResultEntriesView()
+                .tabItem {
+                    Label("Results", systemImage: "chart.bar")
+                }
+                .environmentObject(courseResultEntryStore)
+                .environmentObject(classItemStore)
+                .environmentObject(courseStore)
                 .environmentObject(semesterStore)
         }
         .overlay(alignment: .bottom) {
