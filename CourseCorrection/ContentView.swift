@@ -49,6 +49,7 @@ struct ContentView: View {
                 .environmentObject(classItemStore)
                 .environmentObject(courseStore)
                 .environmentObject(instructorStore)
+                .environmentObject(semesterStore)
         }
         .overlay(alignment: .bottom) {
             Text(departmentStore.usingICloud ? "Stored in iCloud" : "Stored on Device")

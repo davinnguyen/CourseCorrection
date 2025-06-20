@@ -4,6 +4,7 @@ struct ClassItemsView: View {
     @EnvironmentObject var store: ClassItemStore
     @EnvironmentObject var courseStore: CourseStore
     @EnvironmentObject var instructorStore: InstructorStore
+    @EnvironmentObject var semesterStore: SemesterStore
     @State private var showingAdd = false
 
     var body: some View {
@@ -17,6 +18,7 @@ struct ClassItemsView: View {
                                 .environmentObject(store)
                                 .environmentObject(courseStore)
                                 .environmentObject(instructorStore)
+                                .environmentObject(semesterStore)
                         }
                     }
                 }
@@ -35,6 +37,7 @@ struct ClassItemsView: View {
                     .environmentObject(store)
                     .environmentObject(courseStore)
                     .environmentObject(instructorStore)
+                    .environmentObject(semesterStore)
             }
         }
     }
@@ -49,6 +52,7 @@ struct AddClassItemSheet: View {
     @EnvironmentObject var store: ClassItemStore
     @EnvironmentObject var courseStore: CourseStore
     @EnvironmentObject var instructorStore: InstructorStore
+    @EnvironmentObject var semesterStore: SemesterStore
     @Environment(\.dismiss) var dismiss
     @State private var newItem = ClassItem(courseID: UUID(), semesterID: nil, instructorID: nil)
 
@@ -58,6 +62,7 @@ struct AddClassItemSheet: View {
                 ClassItemFormView(classItem: $newItem)
                     .environmentObject(courseStore)
                     .environmentObject(instructorStore)
+                    .environmentObject(semesterStore)
             }
             .navigationTitle("New Class")
             .navigationBarTitleDisplayMode(.inline)
@@ -80,6 +85,7 @@ struct EditClassItemView: View {
     @EnvironmentObject var store: ClassItemStore
     @EnvironmentObject var courseStore: CourseStore
     @EnvironmentObject var instructorStore: InstructorStore
+    @EnvironmentObject var semesterStore: SemesterStore
     @Environment(\.dismiss) var dismiss
 
     @State private var editedItem: ClassItem
@@ -95,6 +101,7 @@ struct EditClassItemView: View {
             ClassItemFormView(classItem: $editedItem)
                 .environmentObject(courseStore)
                 .environmentObject(instructorStore)
+                .environmentObject(semesterStore)
         }
         .navigationTitle("Edit Class")
         .navigationBarTitleDisplayMode(.inline)
@@ -123,4 +130,5 @@ struct EditClassItemView: View {
         .environmentObject(ClassItemStore())
         .environmentObject(CourseStore())
         .environmentObject(InstructorStore())
+        .environmentObject(SemesterStore())
 }
