@@ -1,32 +1,8 @@
-//
-//  Grades.swift
-//  CourseCorrection
-//
-//  Created by Davin Nguyen on 6/19/25.
-//
 
 import Foundation
 import SwiftUI
 
-struct GradesInputsView: View {
-    var body: some View {
-        List {
-            
-        }
-        .navigationTitle("Grades")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-struct GradesInputDetailView: View {
-    var body: some View {
-        Form {
-            
-        }
-        .navigationTitle("Grade")
-        .navigationBarTitleDisplayMode(.inline)
-    }
-}
-struct GradeInput: Identifiable, Codable {
+struct CourseResultEntry: Identifiable, Codable {
     var id: UUID = UUID()
     var classID: UUID
     var courseResult: CourseResult?
